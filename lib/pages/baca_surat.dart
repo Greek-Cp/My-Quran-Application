@@ -102,6 +102,7 @@ class _BacaSuratState extends State<BacaSurat> with TickerProviderStateMixin {
                             return ListView.builder(
                               shrinkWrap: true,
                               itemCount: detailSurat!.data!.ayat!.length,
+                              physics: PageScrollPhysics(),
                               itemBuilder: (context, index) {
                                 return WidgetSurat(
                                     nomorAyat: index.toString(),

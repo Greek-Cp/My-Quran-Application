@@ -9,6 +9,7 @@ import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/home.dart';
 import 'package:my_quran/pages/intro.dart';
 import 'package:my_quran/pages/jadwal_sholat.dart';
+import 'package:my_quran/pages/tajwid.dart';
 import 'package:my_quran/pages/uji.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider<ControllerAPI>(
       create: (context) => ControllerAPI(),
       child: MaterialApp(
-        title: 'My Quran',
+        title: 'Islam App',
         theme: ThemeData(
           // This is the theme of your application.
           //
@@ -51,7 +52,8 @@ class MyApp extends StatelessWidget {
           MyWidget.routeName.toString(): (context) => MyWidget(),
           PageDoa.routeName.toString(): (context) => PageDoa(),
           BacaSurat.routeName.toString(): (context) => BacaSurat(),
-          JadwalSholat.routeName.toString(): (context) => JadwalSholat()
+          JadwalSholat.routeName.toString(): (context) => JadwalSholat(),
+          PageTajwid.routeName.toString(): (context) => PageTajwid()
         },
       ),
     );

@@ -14,6 +14,7 @@ import 'package:my_quran/model/responses_juz.dart';
 import 'package:my_quran/pages/baca_surat.dart';
 import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/item_list/list_juz.dart';
+import 'package:my_quran/pages/tajwid.dart';
 import 'package:my_quran/utils/colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:page_transition/page_transition.dart';
@@ -27,7 +28,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
-  List<String> listItem = ["Surat", "Doa"];
+  List<String> listItem = ["Surat", "Doa", "Tajwid"];
   int selectedIndex = 0;
   StreamController<DateTime>? _streamController;
   final GlobalKey<State<Home>> _animationLimiterKey = GlobalKey();
@@ -38,6 +39,18 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   Timer? _timer;
   late Future<Juz> listJuz;
+  void _animateToTajwid() {
+    // Check the status of the AnimationController and start/stop the animation accordingly
+    if (_controller.status == AnimationStatus.completed ||
+        _controller.status == AnimationStatus.forward) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+    Future.delayed(Duration(milliseconds: 2400), () {
+      Navigator.of(context).popAndPushNamed(PageTajwid.routeName.toString());
+    });
+  }
 
   @override
   void initState() {
@@ -135,14 +148,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         opacity: _FadeAnimationImageSurat,
                         child: SlideTransition(
                             position: _PositionAnimationImage,
-                            child: TextComponent.TextTittle("My Quran")),
+                            child: TextComponent.TextTittle("Ilmu Tajwid")),
                       ),
                       FadeTransition(
                         opacity: _FadeAnimationImageSurat,
                         child: SlideTransition(
                           position: _PositionAnimationImage,
                           child: TextComponent.TextDescription(
-                              "Baca Al-Quran Dengan Mudah",
+                              "Aplikasi Muslim Digital",
                               colors: Colors.black),
                         ),
                       ),
@@ -250,7 +263,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                                   _animate();
                                                 }
                                               }),
-                                              if (selectedIndex == 0) {}
+                                              if (selectedIndex == 2)
+                                                {_animateToTajwid()}
                                             },
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
@@ -281,6 +295,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               return ListView.builder(
                                 shrinkWrap: true,
                                 scrollDirection: Axis.vertical,
+                                physics: PageScrollPhysics(),
                                 itemCount: listData!.length,
                                 itemBuilder: (context, index) {
                                   return AnimationConfiguration.staggeredList(

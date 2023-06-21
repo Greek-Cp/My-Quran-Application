@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,50 +11,116 @@ import 'package:my_quran/component/text.dart';
 import 'package:my_quran/model/controller_response.dart';
 import 'package:my_quran/model/response_doa.dart';
 import 'package:my_quran/model/responses_juz.dart';
+import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/home.dart';
 import 'package:my_quran/pages/item_list/list_juz.dart';
-import 'package:my_quran/pages/tajwid.dart';
 import 'package:my_quran/utils/colors.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_quran/utils/prayer_time_util.dart';
 
-class PageDoa extends StatefulWidget {
-  static String? routeName = "/PageDoa";
-
-  @override
-  State<PageDoa> createState() => _PageDoaState();
+class TajwidClass {
+  String namaHukum;
+  String isiPenjelasan;
+  String contohHuruf;
+  String urlBacaan;
+  TajwidClass(
+      {required this.namaHukum,
+      required this.isiPenjelasan,
+      required this.contohHuruf,
+      required this.urlBacaan});
 }
 
-class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
+class PageTajwid extends StatefulWidget {
+  static String? routeName = "/PageTajwid";
+
+  @override
+  State<PageTajwid> createState() => _PageTajwidState();
+}
+
+class _PageTajwidState extends State<PageTajwid> with TickerProviderStateMixin {
   List<String> listItem = ["Surat", "Doa", "Tajwid"];
-  int selectedIndex = 1;
-  StreamController<DateTime>? _streamController;
-  final GlobalKey<State<PageDoa>> _animationLimiterKey = GlobalKey();
+  List<TajwidClass> tajwidList = [
+    TajwidClass(
+        namaHukum: "Izhar Halqi",
+        isiPenjelasan:
+            "Izhar secara bahasa artinya jelas dan izhar halqi adalah hukum bacaan apabila nun mati atau tanwin bertemu dgn salah satu huruf izhar halqi. Adapun halqi sendiri berarti tenggorokan, maka cara mengucapkannya harus jelas juga, huruf-huruf tersebut antara lain alif atau hamzah(ء), kha’ (خ), ‘ain (ع), ha’ (ح) , ghain (غ), dan ha’ (ﮬ). Contoh bacaannya adalah  : نَارٌ حَامِيَةٌ",
+        contohHuruf: "ء،خ،ع،ح،غ،ه",
+        urlBacaan: "https://sndup.net/qxhh/d"),
+    TajwidClass(
+        namaHukum: "Idgham Bigunnah",
+        isiPenjelasan:
+            "Idgham Bighunnah artinya melebur disertai dengungan atau yang berarti memasukkan salah satu huruf nun mati atau tanwin kedalam huruf sesudahnya dan lafal dari idgham bigunnah tersebut haruslah mendengung jika bertemu empat huruf berikut yakni : nun (ن), mim (م), wawu (و) dan ya’ (ي). Contoh bacaan idgham bigunnah : مُّمَدَّدَةٍ عَمَدٍ فِيْ",
+        contohHuruf: "ي،ن،م،و",
+        urlBacaan: "http://sndup.net/wz5g/d"),
+    TajwidClass(
+        namaHukum: "Idgham Billaghunnah",
+        isiPenjelasan:
+            "Idgham Bilaghunnah artinya melebur tanpa dengung atau memasukkan huruf nun mati atau tanwin kedalam huruf sesudahnya tanpa disertai suara mendengung. Hukum bacaan tersebut berlaku jika nun atau tanwin bertemu huruf berikut lam dan ra’. Contoh bacaannya :  لَمْ مَنْ Meskipun demikian hukum ini tidak berlaku apabila nun mati atau tanwin serta huruf tersebut tidak ada dalam satu kata contohnya  اَدُّنْيَا. Jika demikian nun atau tanwin tetap harus dibaca dengan jelas..",
+        contohHuruf: "ل،ر",
+        urlBacaan: "https://sndup.net/x8hd/d"),
+    TajwidClass(
+        namaHukum: "Iqlab",
+        isiPenjelasan:
+            "Iqlab adalah suatu hukum bacaan Al Quran yang terjadi apabila nun mati atau tanwin bertemu dengan satu huruf saja yaitu huruf  ba’ (ب). Di dalam bacaan ini, bacaan nun mati atau tanwin tidak lagi dibaca sebagai nun atau tanwin berubah menjadi bunyi huruf mim (م). Contoh bacaan iqlab : لَيُنۢبَذَنَّ",
+        contohHuruf: "ب",
+        urlBacaan: "https://sndup.net/s57f/d"),
+    TajwidClass(
+        namaHukum: "Ikhfa Hakiki",
+        isiPenjelasan:
+            "Ikhfa memiliki arti menyamarkan, hukum bacaan ini berlaku apabila huruf nun mati atau tanwin bertemu dgn huruf-huruf ikhfa yakni  ta’(ت), tha’ (ث), jim (ج), dal (د), dzal (ذ), zai (ز), sin (س), syin (ش), sod (ص), dhod (ض), , fa’ (ف), qof (ق), dan huruf  kaf (ك). Jika bertemu dengan huruf-huruf tersebut  maka nun mati atau tanwin tersebut  harus dibaca samar atau antara bacaan Izhar dan bacaan Idgham.  Contoh bacaan ikhfa haqiqi: نَقْعًا فَوَسَطْنَ",
+        contohHuruf: "ت،ث،ج،د،ذ،ز،س،ش،ص،ض،ف،ق،ك",
+        urlBacaan: "http://sndup.net/v9pw/d"),
+  ];
+  int selectedIndex = 2;
+  StreamController<DateTime>? _streamControllera;
+  final GlobalKey<State<PageTajwid>> _animationLimiterKeya = GlobalKey();
   late AnimationController _controller;
 
-  late Animation<double> _FadeAnimationImageSurat;
-  late Animation<Offset> _PositionAnimationImage;
-  late Animation<Offset> _PositionKategori;
+  late Animation<double> _FadeAnimationImageSuratS;
+  late Animation<Offset> _PositionAnimationImagev;
+  late Animation<Offset> _PositionKategoris;
 
   Timer? _timer;
   late Future<List<Doa>> listDoa;
+  List<String> namaHukum = [
+    "Izhar Halqi",
+    "Idgham Bigunnah",
+    "Idgham Billaghunnah",
+    "Iqlab",
+    "Ikhfa Hakiki"
+  ];
+
+  List<String> isiPenjelasan = [
+    "Izhar secara bahasa artinya jelas dan izhar halqi adalah hukum bacaan apabila nun mati atau tanwin bertemu dgn salah satu huruf izhar halqi. Adapun halqi sendiri berarti tenggorokan, maka cara mengucapkannya harus jelas juga, huruf-huruf tersebut antara lain alif atau hamzah(ء), kha’ (خ), ‘ain (ع), ha’ (ح) , ghain (غ), dan ha’ (ﮬ). Contoh bacaannya adalah  : نَارٌ حَامِيَةٌ",
+    "Idgham Bighunnah artinya melebur disertai dengungan atau yang berarti memasukkan salah satu huruf nun mati atau tanwin kedalam huruf sesudahnya dan lafal dari idgham bigunnah tersebut haruslah mendengung jika bertemu empat huruf berikut yakni : nun (ن), mim (م), wawu (و) dan ya’ (ي). Contoh bacaan idgham bigunnah : مُّمَدَّدَةٍ عَمَدٍ فِيْ",
+    "Idgham Bilaghunnah artinya melebur tanpa dengung atau memasukkan huruf nun mati atau tanwin kedalam huruf sesudahnya tanpa disertai suara mendengung. Hukum bacaan tersebut berlaku jika nun atau tanwin bertemu huruf berikut lam dan ra’. Contoh bacaannya :  لَمْ مَنْ Meskipun demikian hukum ini tidak berlaku apabila nun mati atau tanwin serta huruf tersebut tidak ada dalam satu kata contohnya  اَدُّنْيَا. Jika demikian nun atau tanwin tetap harus dibaca dengan jelas..",
+    "Iqlab adalah suatu hukum bacaan Al Quran yang terjadi apabila nun mati atau tanwin bertemu dengan satu huruf saja yaitu huruf  ba’ (ب). Di dalam bacaan ini, bacaan nun mati atau tanwin tidak lagi dibaca sebagai nun atau tanwin berubah menjadi bunyi huruf mim (م). Contoh bacaan iqlab : لَيُنۢبَذَنَّ",
+    "Ikhfa memiliki arti menyamarkan, hukum bacaan ini berlaku apabila huruf nun mati atau tanwin bertemu dgn huruf-huruf ikhfa yakni  ta’(ت), tha’ (ث), jim (ج), dal (د), dzal (ذ), zai (ز), sin (س), syin (ش), sod (ص), dhod (ض), , fa’ (ف), qof (ق), dan huruf  kaf (ك). Jika bertemu dengan huruf-huruf tersebut  maka nun mati atau tanwin tersebut  harus dibaca samar atau antara bacaan Izhar dan bacaan Idgham.  Contoh bacaan ikhfa haqiqi: نَقْعًا فَوَسَطْنَ"
+  ];
+
+  List<String> contohHuruf = [
+    "ء،خ،ع،ح،غ،ه",
+    "ي،ن،م،و",
+    "ل،ر",
+    "ب",
+    "ت،ث،ج،د،ذ،ز،س،ش،ص،ض،ف،ق،ك",
+  ];
 
   @override
   void initState() {
     listDoa = ControllerAPI.fetchDataDoa();
     super.initState();
-    _streamController = StreamController<DateTime>();
+    _streamControllera = StreamController<DateTime>();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      _streamController?.add(DateTime.now());
+      _streamControllera?.add(DateTime.now());
     });
     _controller = AnimationController(
       duration: Duration(milliseconds: 2400),
       vsync: this,
     );
 
-    _FadeAnimationImageSurat =
+    _FadeAnimationImageSuratS =
         Tween<double>(begin: 0, end: 1).animate(_controller);
-    _PositionAnimationImage = Tween<Offset>(
+    _PositionAnimationImagev = Tween<Offset>(
       begin: Offset(1, 0),
       end: Offset.zero,
     ).animate(
@@ -62,7 +129,7 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
         curve: Curves.easeOut,
       ),
     );
-    _PositionKategori = Tween<Offset>(
+    _PositionKategoris = Tween<Offset>(
       begin: Offset(-1, 0),
       end: Offset.zero,
     ).animate(
@@ -87,7 +154,7 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _animateToTajwid() {
+  void _animateToDoa() {
     // Check the status of the AnimationController and start/stop the animation accordingly
     if (_controller.status == AnimationStatus.completed ||
         _controller.status == AnimationStatus.forward) {
@@ -96,13 +163,13 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
       _controller.forward();
     }
     Future.delayed(Duration(milliseconds: 2400), () {
-      Navigator.of(context).popAndPushNamed(PageTajwid.routeName.toString());
+      Navigator.of(context).popAndPushNamed(PageDoa.routeName.toString());
     });
   }
 
   @override
   void dispose() {
-    _streamController?.close();
+    _streamControllera?.close();
     _timer?.cancel();
     super.dispose();
   }
@@ -115,12 +182,13 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     _controller.stop();
   }
 
+  late AudioPlayer audioPlayer;
   double horizontalOffset = 50.0;
   int time = 375 + 100;
   @override
   Widget build(BuildContext context) {
+    audioPlayer = AudioPlayer();
     // TODO: implement build
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -133,15 +201,15 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                     left: -30,
                     top: 0,
                     child: FadeTransition(
-                        opacity: _FadeAnimationImageSurat,
+                        opacity: _FadeAnimationImageSuratS,
                         child: SlideTransition(
-                          position: _PositionKategori,
+                          position: _PositionKategoris,
                           child: Align(
                               alignment: Alignment.topLeft,
                               child: Positioned(
                                 child: SizedBox(
                                     child: Image.asset(
-                                  "assets/ic_halaman_doa.png",
+                                  "assets/ic_tajwid.png",
                                   width: 340,
                                   height: 260,
                                   fit: BoxFit.fill,
@@ -159,31 +227,31 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           height: 30,
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                              position: _PositionAnimationImage,
+                              position: _PositionAnimationImagev,
                               child: TextComponent.TextTittle("Ilmu Tajwid")),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: TextComponent.TextDescription(
-                                "Bacaaan Doa Doa",
+                                "Belajar Tajwid",
                                 colors: Colors.black),
                           ),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: StreamBuilder<DateTime>(
-                            stream: _streamController?.stream,
+                            stream: _streamControllera?.stream,
                             builder: (context, snapshot) {
                               if (snapshot.hasData) {
                                 var formattedTime = DateFormat.Hms()
                                     .format(snapshot.data ?? DateTime.now());
 
                                 return SlideTransition(
-                                  position: _PositionAnimationImage,
+                                  position: _PositionAnimationImagev,
                                   child: TextComponent.TextTittle(
                                       "$formattedTime",
                                       colors: Colors.black),
@@ -195,9 +263,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: TextComponent.TextDescription(
                                 "Ramadan 23,1444 AH",
                                 colors: Colors.black,
@@ -208,9 +276,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           height: 10,
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: ElevatedButton(
                                 style: ButtonStyle(
                                     backgroundColor: MaterialStatePropertyAll(
@@ -231,9 +299,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                             padding: const EdgeInsets.only(
                                 left: 10, bottom: 15, top: 40),
                             child: FadeTransition(
-                              opacity: _FadeAnimationImageSurat,
+                              opacity: _FadeAnimationImageSuratS,
                               child: SlideTransition(
-                                position: _PositionKategori,
+                                position: _PositionKategoris,
                                 child: TextComponent.TextTittleJuz("Kategori",
                                     colors: Colors.black),
                               ),
@@ -241,9 +309,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: SizedBox(
@@ -284,12 +352,10 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                                                     selectedIndex = index;
                                                     if (selectedIndex == 0) {
                                                       _animate();
-                                                    } else if (selectedIndex ==
-                                                        2) {
-                                                      _animateToTajwid();
                                                     }
                                                   }),
-                                                  if (selectedIndex == 0) {}
+                                                  if (selectedIndex == 1)
+                                                    {_animateToDoa()}
                                                 },
                                             child: Padding(
                                               padding:
@@ -323,28 +389,29 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                                 return ListView.builder(
                                   shrinkWrap: true,
                                   scrollDirection: Axis.vertical,
-                                  itemCount: listData!.length,
+                                  itemCount: tajwidList!.length,
                                   itemBuilder: (context, index) {
                                     return AnimationConfiguration.staggeredList(
                                         position: index,
                                         duration:
                                             const Duration(milliseconds: 2375),
                                         child: SlideTransition(
-                                            position: _PositionAnimationImage,
+                                            position: _PositionAnimationImagev,
                                             child: FadeTransition(
                                                 opacity:
-                                                    _FadeAnimationImageSurat,
+                                                    _FadeAnimationImageSuratS,
                                                 child: cardJuz(
-                                                    noDoa: listData[index]
-                                                        .id
+                                                    urlBacaan: tajwidList[index]
+                                                        .urlBacaan,
+                                                    noDoa: index.toString(),
+                                                    namaDoa: tajwidList[index]
+                                                        .namaHukum
                                                         .toString(),
-                                                    namaDoa: listData[index]
-                                                        .doa
+                                                    doaArab: tajwidList[index]
+                                                        .contohHuruf
                                                         .toString(),
-                                                    doaArab:
-                                                        listData[index].ayat,
-                                                    doaLatin: listData[index]
-                                                        .latin))));
+                                                    doaLatin: tajwidList[index]
+                                                        .isiPenjelasan))));
                                   },
                                 );
                               } else {
@@ -364,8 +431,18 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     );
   }
 
+  bool isPlay = false;
+
+  late Source audioUrl;
   Widget cardJuz(
-      {String? noDoa, String? namaDoa, String? doaArab, String? doaLatin}) {
+      {String? noDoa,
+      String? namaDoa,
+      String? doaArab,
+      String? doaLatin,
+      String? urlBacaan}) {
+    late AnimationController animationControllerPlayButton;
+    animationControllerPlayButton =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Container(
@@ -448,7 +525,53 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                   ),
                   SizedBox(
                     width: 20,
-                  )
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.share_outlined,
+                          ),
+                          onPressed: () {},
+                          color: ColorApp.colorPurpler,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            if (isPlay == false) {
+                              isPlay = true;
+                              audioUrl = UrlSource(urlBacaan.toString());
+                              audioPlayer.play(audioUrl);
+                              animationControllerPlayButton.forward();
+                              audioPlayer.onPlayerComplete.listen((event) {
+                                audioPlayer.stop();
+                                animationControllerPlayButton.reverse();
+                              });
+                              audioPlayer.onPlayerStateChanged.listen((event) {
+                                if (event == PlayerState.stopped) {
+                                  animationControllerPlayButton.reverse();
+                                } else if (event == PlayerState.paused) {
+                                  animationControllerPlayButton.reverse();
+                                }
+                              });
+                            } else if (isPlay == true) {
+                              isPlay = false;
+                              audioPlayer.pause();
+                              animationControllerPlayButton.reverse();
+                            }
+                          },
+                          child: AnimatedIcon(
+                            icon: AnimatedIcons.play_pause,
+                            progress: animationControllerPlayButton,
+                            color: ColorApp.colorPurpler,
+                          ),
+                        ),
+                        Icon(Icons.bookmark_outline,
+                            color: ColorApp.colorPurpler)
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

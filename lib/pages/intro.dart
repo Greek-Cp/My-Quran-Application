@@ -23,8 +23,8 @@ class Intro extends StatelessWidget {
           child: Column(
             children: [
               Center(child: Image.asset("assets/ic_myquran.png")),
-              TextComponent.TextTittle("My Quran"),
-              TextComponent.TextDescription("Baca Al-Quran Dengan Mudah"),
+              TextComponent.TextTittle("Ilmu Tajwid"),
+              TextComponent.TextDescription("Aplikasi Muslim Digital"),
             ],
           ),
         ),
