@@ -388,6 +388,7 @@ class _PageTajwidState extends State<PageTajwid> with TickerProviderStateMixin {
                                 List<Doa>? listData = snapshot.data;
                                 return ListView.builder(
                                   shrinkWrap: true,
+                                  physics: PageScrollPhysics(),
                                   scrollDirection: Axis.vertical,
                                   itemCount: tajwidList!.length,
                                   itemBuilder: (context, index) {

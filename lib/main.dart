@@ -50,8 +50,6 @@ class MyApp extends StatelessWidget {
               900: Color.fromRGBO(149, 67, 255, 1.0),
             },
           ),
-          buttonColor: ColorApp.colorPurpler, // Ubah warna button
-          toggleableActiveColor: ColorApp.colorPurpler,
         ),
         debugShowCheckedModeBanner: false,
         initialRoute: Intro.routingName.toString(),

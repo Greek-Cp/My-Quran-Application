@@ -137,32 +137,27 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
 
     return Scaffold(
       body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        physics: PageScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.only(left: 0, right: 20),
           child: Column(
             children: [
               Stack(
                 children: [
-                  Positioned(
-                    left: -30,
-                    top: 0,
-                    child: FadeTransition(
-                        opacity: _FadeAnimationImageSurat,
-                        child: SlideTransition(
-                          position: _PositionKategori,
-                          child: Align(
-                              alignment: Alignment.topLeft,
-                              child: Positioned(
-                                child: SizedBox(
-                                    child: Image.asset(
-                                  "assets/ic_halaman_doa.png",
-                                  width: 340,
-                                  height: 260,
-                                  fit: BoxFit.fill,
-                                )),
-                              )),
-                        )),
+                  SlideTransition(
+                    position: _PositionKategori,
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                            child: Image.asset(
+                          "assets/ic_halaman_doa.png",
+                          width: 340,
+                          height: 260,
+                          fit: BoxFit.fill,
+                        ))),
                   ),
+                  SizedBox(height: 30),
                   Padding(
                     padding: const EdgeInsets.only(left: 10),
                     child: Column(
@@ -249,6 +244,7 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                                 height: 40,
                                 child: ListView.builder(
                                   shrinkWrap: true,
+                                  physics: PageScrollPhysics(),
                                   scrollDirection: Axis.horizontal,
                                   itemCount: listItem.length,
                                   itemBuilder: (context, index) {
@@ -325,6 +321,7 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                                 return ListView.builder(
                                   shrinkWrap: true,
                                   scrollDirection: Axis.vertical,
+                                  physics: PageScrollPhysics(),
                                   itemCount: listData!.length,
                                   itemBuilder: (context, index) {
                                     return AnimationConfiguration.staggeredList(
@@ -356,7 +353,7 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                             })
                       ],
                     ),
-                  )
+                  ),
                 ],
               )
             ],

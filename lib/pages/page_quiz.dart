@@ -316,6 +316,7 @@ class _PageQuizState extends State<PageQuiz> with TickerProviderStateMixin {
                                 height: 40,
                                 child: ListView.builder(
                                   shrinkWrap: true,
+                                  physics: PageScrollPhysics(),
                                   scrollDirection: Axis.horizontal,
                                   itemCount: listItem.length,
                                   itemBuilder: (context, index) {
