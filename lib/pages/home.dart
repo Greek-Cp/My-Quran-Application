@@ -14,6 +14,7 @@ import 'package:my_quran/model/responses_juz.dart';
 import 'package:my_quran/pages/baca_surat.dart';
 import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/item_list/list_juz.dart';
+import 'package:my_quran/pages/page_quiz.dart';
 import 'package:my_quran/pages/tajwid.dart';
 import 'package:my_quran/utils/colors.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +29,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
-  List<String> listItem = ["Surat", "Doa", "Tajwid"];
+  List<String> listItem = ["Surat", "Doa", "Tajwid", "Quiz"];
   int selectedIndex = 0;
   StreamController<DateTime>? _streamController;
   final GlobalKey<State<Home>> _animationLimiterKey = GlobalKey();
@@ -49,6 +50,19 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
     Future.delayed(Duration(milliseconds: 2400), () {
       Navigator.of(context).popAndPushNamed(PageTajwid.routeName.toString());
+    });
+  }
+
+  void _animateToQuiz() {
+    // Check the status of the AnimationController and start/stop the animation accordingly
+    if (_controller.status == AnimationStatus.completed ||
+        _controller.status == AnimationStatus.forward) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+    Future.delayed(Duration(milliseconds: 2400), () {
+      Navigator.of(context).popAndPushNamed(PageQuiz.routeName.toString());
     });
   }
 
@@ -193,21 +207,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       SizedBox(
                         height: 10,
                       ),
-                      FadeTransition(
-                        opacity: _FadeAnimationImageSurat,
-                        child: SlideTransition(
-                          position: _PositionAnimationImage,
-                          child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStatePropertyAll(
-                                      ColorApp.colorPurpler)),
-                              onPressed: () {},
-                              child: TextComponent.TextDescription(
-                                  "Maghrib 17:33 PM",
-                                  colors: Colors.white,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ),
                       SizedBox(
                         height: 30,
                       ),
@@ -265,6 +264,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                               }),
                                               if (selectedIndex == 2)
                                                 {_animateToTajwid()}
+                                              else if (selectedIndex == 3)
+                                                {_animateToQuiz()}
                                             },
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(

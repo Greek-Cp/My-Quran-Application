@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,31 +11,44 @@ import 'package:my_quran/component/text.dart';
 import 'package:my_quran/model/controller_response.dart';
 import 'package:my_quran/model/response_doa.dart';
 import 'package:my_quran/model/responses_juz.dart';
+import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/home.dart';
 import 'package:my_quran/pages/item_list/list_juz.dart';
-import 'package:my_quran/pages/page_quiz.dart';
 import 'package:my_quran/pages/tajwid.dart';
 import 'package:my_quran/utils/colors.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_quran/utils/prayer_time_util.dart';
 
-class PageDoa extends StatefulWidget {
-  static String? routeName = "/PageDoa";
-
-  @override
-  State<PageDoa> createState() => _PageDoaState();
+class Jawaban {
+  String? opsi;
+  String? jawaban;
+  Jawaban({this.opsi, this.jawaban});
 }
 
-class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
-  List<String> listItem = ["Surat", "Doa", "Tajwid", "Quiz"];
-  int selectedIndex = 1;
-  StreamController<DateTime>? _streamController;
-  final GlobalKey<State<PageDoa>> _animationLimiterKey = GlobalKey();
+class SoalClass {
+  String? namaGambar;
+  String? namaSoal;
+  String? jawabanBenar;
+  List<Jawaban>? listJawaban;
+  SoalClass(
+      this.namaGambar, this.namaSoal, this.jawabanBenar, this.listJawaban);
+}
+
+class PageQuiz extends StatefulWidget {
+  static String? routeName = "/PageQuiz";
+
+  @override
+  State<PageQuiz> createState() => _PageQuizState();
+}
+
+class _PageQuizState extends State<PageQuiz> with TickerProviderStateMixin {
+  int selectedIndex = 3;
+  StreamController<DateTime>? _streamControllera;
+  final GlobalKey<State<PageQuiz>> _animationLimiterKeya = GlobalKey();
   late AnimationController _controller;
 
-  late Animation<double> _FadeAnimationImageSurat;
-  late Animation<Offset> _PositionAnimationImage;
-  late Animation<Offset> _PositionKategori;
+  late Animation<double> _FadeAnimationImageSuratS;
+  late Animation<Offset> _PositionAnimationImagev;
+  late Animation<Offset> _PositionKategoris;
 
   Timer? _timer;
   late Future<List<Doa>> listDoa;
@@ -43,18 +57,18 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
   void initState() {
     listDoa = ControllerAPI.fetchDataDoa();
     super.initState();
-    _streamController = StreamController<DateTime>();
+    _streamControllera = StreamController<DateTime>();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      _streamController?.add(DateTime.now());
+      _streamControllera?.add(DateTime.now());
     });
     _controller = AnimationController(
       duration: Duration(milliseconds: 2400),
       vsync: this,
     );
 
-    _FadeAnimationImageSurat =
+    _FadeAnimationImageSuratS =
         Tween<double>(begin: 0, end: 1).animate(_controller);
-    _PositionAnimationImage = Tween<Offset>(
+    _PositionAnimationImagev = Tween<Offset>(
       begin: Offset(1, 0),
       end: Offset.zero,
     ).animate(
@@ -63,7 +77,7 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
         curve: Curves.easeOut,
       ),
     );
-    _PositionKategori = Tween<Offset>(
+    _PositionKategoris = Tween<Offset>(
       begin: Offset(-1, 0),
       end: Offset.zero,
     ).animate(
@@ -88,6 +102,19 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     });
   }
 
+  void _animateToDoa() {
+    // Check the status of the AnimationController and start/stop the animation accordingly
+    if (_controller.status == AnimationStatus.completed ||
+        _controller.status == AnimationStatus.forward) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+    Future.delayed(Duration(milliseconds: 2400), () {
+      Navigator.of(context).popAndPushNamed(PageDoa.routeName.toString());
+    });
+  }
+
   void _animateToTajwid() {
     // Check the status of the AnimationController and start/stop the animation accordingly
     if (_controller.status == AnimationStatus.completed ||
@@ -101,22 +128,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _animateToQuiz() {
-    // Check the status of the AnimationController and start/stop the animation accordingly
-    if (_controller.status == AnimationStatus.completed ||
-        _controller.status == AnimationStatus.forward) {
-      _controller.reverse();
-    } else {
-      _controller.forward();
-    }
-    Future.delayed(Duration(milliseconds: 2400), () {
-      Navigator.of(context).popAndPushNamed(PageQuiz.routeName.toString());
-    });
-  }
-
   @override
   void dispose() {
-    _streamController?.close();
+    _streamControllera?.close();
     _timer?.cancel();
     super.dispose();
   }
@@ -129,12 +143,65 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     _controller.stop();
   }
 
+  late AudioPlayer audioPlayer;
   double horizontalOffset = 50.0;
   int time = 375 + 100;
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    audioPlayer = AudioPlayer();
+    List<SoalClass> listSoal = [
+      SoalClass(
+        "https://i.ibb.co/mR17C5C/1.jpg",
+        "Berdasarkan gambar, Idgham Maal ghunnah berlaku apabila ...",
+        "B",
+        [
+          Jawaban(opsi: "A", jawaban: "Nun Sakinah bertemu Nun"),
+          Jawaban(opsi: "B", jawaban: "Nun Sakinah bertemu Lam"),
+          Jawaban(opsi: "C", jawaban: "Tanwin bertemu Lam"),
+          Jawaban(opsi: "D", jawaban: "Nun Sakinah bertemu Ba"),
+        ],
+      ),
+      SoalClass(
+        "https://i.ibb.co/pb8ZLKw/2.jpg",
+        "Dua contoh di atas merujuk kepada",
+        "C",
+        [
+          Jawaban(opsi: "A", jawaban: "Idgham Maal Ghunnah"),
+          Jawaban(opsi: "B", jawaban: "Iqlab"),
+          Jawaban(opsi: "C", jawaban: "Idgham Bila ghunnah"),
+          Jawaban(opsi: "D", jawaban: "Izhar Halqi"),
+        ],
+      ),
+      SoalClass(
+        "https://i.ibb.co/CsKRhLq/3.jpg",
+        "Berdasarkan gambar, ....... bertemu Ro",
+        "A",
+        [
+          Jawaban(opsi: "A", jawaban: "Tanwin"),
+          Jawaban(opsi: "B", jawaban: "Alif"),
+          Jawaban(opsi: "C", jawaban: "Nun Sakinah"),
+          Jawaban(opsi: "D", jawaban: "Nun Mati"),
+        ],
+      ),
+      SoalClass(
+        "https://i.ibb.co/SfsxQJp/4.jpg",
+        "Kedua-dua contoh Idgham Maal Ghunnah ini adalah sama...",
+        "B",
+        [
+          Jawaban(opsi: "A", jawaban: "Nun sakinah bertemu Mim"),
+          Jawaban(opsi: "B", jawaban: "Tanwin Kasrotain bertemu Mim"),
+          Jawaban(opsi: "C", jawaban: "Tanwin Fathatain bertemu Mim"),
+          Jawaban(opsi: "D", jawaban: "Syaddah bertemu Mim"),
+        ],
+      ),
+    ];
 
+    bool showHasilJawaban = false;
+    String? selectedJawaban;
+    bool isJawabanBenar = false;
+    List<String> listItem = ["Surat", "Doa", "Tajwid", "Quiz"];
+    // TODO: implement build
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -147,15 +214,15 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                     left: -30,
                     top: 0,
                     child: FadeTransition(
-                        opacity: _FadeAnimationImageSurat,
+                        opacity: _FadeAnimationImageSuratS,
                         child: SlideTransition(
-                          position: _PositionKategori,
+                          position: _PositionKategoris,
                           child: Align(
                               alignment: Alignment.topLeft,
                               child: Positioned(
                                 child: SizedBox(
                                     child: Image.asset(
-                                  "assets/ic_halaman_doa.png",
+                                  "assets/ic_tajwid.png",
                                   width: 340,
                                   height: 260,
                                   fit: BoxFit.fill,
@@ -173,31 +240,31 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           height: 30,
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                              position: _PositionAnimationImage,
-                              child: TextComponent.TextTittle("Ilmu Tajwid")),
+                              position: _PositionAnimationImagev,
+                              child: TextComponent.TextTittle("Quiz Tajwid")),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: TextComponent.TextDescription(
-                                "Bacaaan Doa Doa",
+                                "Belajar Tajwid",
                                 colors: Colors.black),
                           ),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: StreamBuilder<DateTime>(
-                            stream: _streamController?.stream,
+                            stream: _streamControllera?.stream,
                             builder: (context, snapshot) {
                               if (snapshot.hasData) {
                                 var formattedTime = DateFormat.Hms()
                                     .format(snapshot.data ?? DateTime.now());
 
                                 return SlideTransition(
-                                  position: _PositionAnimationImage,
+                                  position: _PositionAnimationImagev,
                                   child: TextComponent.TextTittle(
                                       "$formattedTime",
                                       colors: Colors.black),
@@ -209,9 +276,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: TextComponent.TextDescription(
                                 "Ramadan 23,1444 AH",
                                 colors: Colors.black,
@@ -230,9 +297,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                             padding: const EdgeInsets.only(
                                 left: 10, bottom: 15, top: 40),
                             child: FadeTransition(
-                              opacity: _FadeAnimationImageSurat,
+                              opacity: _FadeAnimationImageSuratS,
                               child: SlideTransition(
-                                position: _PositionKategori,
+                                position: _PositionKategoris,
                                 child: TextComponent.TextTittleJuz("Kategori",
                                     colors: Colors.black),
                               ),
@@ -240,9 +307,9 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         FadeTransition(
-                          opacity: _FadeAnimationImageSurat,
+                          opacity: _FadeAnimationImageSuratS,
                           child: SlideTransition(
-                            position: _PositionAnimationImage,
+                            position: _PositionAnimationImagev,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: SizedBox(
@@ -283,15 +350,12 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                                                     selectedIndex = index;
                                                     if (selectedIndex == 0) {
                                                       _animate();
-                                                    } else if (selectedIndex ==
-                                                        2) {
-                                                      _animateToTajwid();
-                                                    } else if (selectedIndex ==
-                                                        3) {
-                                                      _animateToQuiz();
                                                     }
                                                   }),
-                                                  if (selectedIndex == 0) {}
+                                                  if (selectedIndex == 1)
+                                                    {_animateToDoa()}
+                                                  else if (selectedIndex == 2)
+                                                    {_animateToTajwid()}
                                                 },
                                             child: Padding(
                                               padding:
@@ -317,43 +381,14 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
                         SizedBox(
                           height: 10,
                         ),
-                        FutureBuilder<List<Doa>>(
-                            future: listDoa,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                List<Doa>? listData = snapshot.data;
-                                return ListView.builder(
-                                  shrinkWrap: true,
-                                  scrollDirection: Axis.vertical,
-                                  itemCount: listData!.length,
-                                  itemBuilder: (context, index) {
-                                    return AnimationConfiguration.staggeredList(
-                                        position: index,
-                                        duration:
-                                            const Duration(milliseconds: 2375),
-                                        child: SlideTransition(
-                                            position: _PositionAnimationImage,
-                                            child: FadeTransition(
-                                                opacity:
-                                                    _FadeAnimationImageSurat,
-                                                child: cardJuz(
-                                                    noDoa: listData[index]
-                                                        .id
-                                                        .toString(),
-                                                    namaDoa: listData[index]
-                                                        .doa
-                                                        .toString(),
-                                                    doaArab:
-                                                        listData[index].ayat,
-                                                    doaLatin: listData[index]
-                                                        .latin))));
-                                  },
-                                );
-                              } else {
-                                return Center(
-                                    child: CircularProgressIndicator());
-                              }
-                            })
+                        ...listSoal
+                            .map((soal) =>
+                                SoalWidget(soal, onJawabanSelected: (value) {
+                                  setState(() {
+                                    selectedJawaban = value;
+                                  });
+                                }))
+                            .toList(),
                       ],
                     ),
                   )
@@ -366,97 +401,105 @@ class _PageDoaState extends State<PageDoa> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget cardJuz(
-      {String? noDoa, String? namaDoa, String? doaArab, String? doaLatin}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(width: 5, color: ColorApp.colorPurpler),
-          ),
+  bool isPlay = false;
+
+  late Source audioUrl;
+}
+
+class HasilJawaban extends StatelessWidget {
+  final List<SoalClass> listSoal;
+  final String? selectedJawaban;
+
+  HasilJawaban(this.listSoal, this.selectedJawaban);
+
+  @override
+  Widget build(BuildContext context) {
+    int jawabanBenar = 0;
+    int jawabanSalah = 0;
+
+    for (var soal in listSoal) {
+      if (soal.jawabanBenar == selectedJawaban) {
+        jawabanBenar++;
+      } else {
+        jawabanSalah++;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Jawaban Benar: $jawabanBenar'),
+        Text('Jawaban Salah: $jawabanSalah'),
+      ],
+    );
+  }
+}
+
+class SoalWidget extends StatefulWidget {
+  final SoalClass soal;
+  final ValueChanged<String?> onJawabanSelected;
+
+  SoalWidget(this.soal, {required this.onJawabanSelected});
+
+  @override
+  _SoalWidgetState createState() => _SoalWidgetState();
+}
+
+class _SoalWidgetState extends State<SoalWidget> {
+  String? selectedJawaban;
+  bool showHasilJawaban = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Image.network(
+          widget.soal.namaGambar!,
+          width: 200,
+          height: 200,
         ),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 5, right: 5),
-          child: Card(
-            elevation: 5.0,
-            color: Colors.white,
-            shadowColor: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: InkWell(
-              onTap: () {},
-              splashColor: ColorApp.colorPurpler,
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 45, top: 15),
-                        child: TextComponent.TextTittleJuz(
-                          "${namaDoa}",
-                          colors: Colors.black,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Stack(
-                              children: [
-                                Image.asset(
-                                  "assets/ic_juz.png",
-                                ),
-                                Positioned.fill(
-                                  child: Center(
-                                    child: Text(
-                                      "${noDoa}",
-                                      style: GoogleFonts.poppins(
-                                        textStyle: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Flexible(
-                              child: TextComponent.TextDescription("${doaArab}",
-                                  colors: ColorApp.colorPurpler),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 45, bottom: 15),
-                        child: TextComponent.TextDescriptionJuz(
-                          "${doaLatin}",
-                          colors: ColorApp.colorGray,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    width: 20,
-                  )
-                ],
-              ),
+        SizedBox(height: 10),
+        Text(
+          widget.soal.namaSoal!,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 10),
+        Column(
+          children: widget.soal.listJawaban!.map((jawaban) {
+            return Row(
+              children: [
+                Radio<String>(
+                  value: jawaban.opsi!,
+                  groupValue: selectedJawaban,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedJawaban = value;
+                      widget.onJawabanSelected(value);
+                      showHasilJawaban = true;
+                    });
+                  },
+                ),
+                SizedBox(width: 5),
+                Text(jawaban.jawaban!),
+              ],
+            );
+          }).toList(),
+        ),
+        if (showHasilJawaban)
+          Text(
+            selectedJawaban == widget.soal.jawabanBenar
+                ? 'Jawaban Anda Benar!'
+                : 'Jawaban Anda Salah!',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: selectedJawaban == widget.soal.jawabanBenar
+                  ? Colors.green
+                  : Colors.red,
             ),
           ),
-        ),
-      ),
+        Divider(),
+      ],
     );
   }
 }

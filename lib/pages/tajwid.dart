@@ -14,6 +14,7 @@ import 'package:my_quran/model/responses_juz.dart';
 import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/home.dart';
 import 'package:my_quran/pages/item_list/list_juz.dart';
+import 'package:my_quran/pages/page_quiz.dart';
 import 'package:my_quran/utils/colors.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,7 +38,7 @@ class PageTajwid extends StatefulWidget {
 }
 
 class _PageTajwidState extends State<PageTajwid> with TickerProviderStateMixin {
-  List<String> listItem = ["Surat", "Doa", "Tajwid"];
+  List<String> listItem = ["Surat", "Doa", "Tajwid", "Quiz"];
   List<TajwidClass> tajwidList = [
     TajwidClass(
         namaHukum: "Izhar Halqi",
@@ -104,6 +105,18 @@ class _PageTajwidState extends State<PageTajwid> with TickerProviderStateMixin {
     "ب",
     "ت،ث،ج،د،ذ،ز،س،ش،ص،ض،ف،ق،ك",
   ];
+  void _animateToQuiz() {
+    // Check the status of the AnimationController and start/stop the animation accordingly
+    if (_controller.status == AnimationStatus.completed ||
+        _controller.status == AnimationStatus.forward) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+    Future.delayed(Duration(milliseconds: 2400), () {
+      Navigator.of(context).popAndPushNamed(PageQuiz.routeName.toString());
+    });
+  }
 
   @override
   void initState() {
@@ -275,21 +288,6 @@ class _PageTajwidState extends State<PageTajwid> with TickerProviderStateMixin {
                         SizedBox(
                           height: 10,
                         ),
-                        FadeTransition(
-                          opacity: _FadeAnimationImageSuratS,
-                          child: SlideTransition(
-                            position: _PositionAnimationImagev,
-                            child: ElevatedButton(
-                                style: ButtonStyle(
-                                    backgroundColor: MaterialStatePropertyAll(
-                                        ColorApp.colorPurpler)),
-                                onPressed: () {},
-                                child: TextComponent.TextDescription(
-                                    "Shubuh 4:17 AM",
-                                    colors: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ),
                         SizedBox(
                           height: 20,
                         ),
@@ -356,6 +354,8 @@ class _PageTajwidState extends State<PageTajwid> with TickerProviderStateMixin {
                                                   }),
                                                   if (selectedIndex == 1)
                                                     {_animateToDoa()}
+                                                  else if (selectedIndex == 3)
+                                                    {_animateToQuiz()}
                                                 },
                                             child: Padding(
                                               padding:

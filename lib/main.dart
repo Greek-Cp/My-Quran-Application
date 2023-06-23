@@ -9,8 +9,10 @@ import 'package:my_quran/pages/doa.dart';
 import 'package:my_quran/pages/home.dart';
 import 'package:my_quran/pages/intro.dart';
 import 'package:my_quran/pages/jadwal_sholat.dart';
+import 'package:my_quran/pages/page_quiz.dart';
 import 'package:my_quran/pages/tajwid.dart';
 import 'package:my_quran/pages/uji.dart';
+import 'package:my_quran/utils/colors.dart';
 import 'package:provider/provider.dart';
 
 import 'httpovveride.dart';
@@ -33,16 +35,23 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Islam App',
         theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.blue,
+          primarySwatch: MaterialColor(
+            ColorApp.colorPurpler.value,
+            <int, Color>{
+              50: Color.fromRGBO(149, 67, 255, 0.1),
+              100: Color.fromRGBO(149, 67, 255, 0.2),
+              200: Color.fromRGBO(149, 67, 255, 0.3),
+              300: Color.fromRGBO(149, 67, 255, 0.4),
+              400: Color.fromRGBO(149, 67, 255, 0.5),
+              500: Color.fromRGBO(149, 67, 255, 0.6),
+              600: Color.fromRGBO(149, 67, 255, 0.7),
+              700: Color.fromRGBO(149, 67, 255, 0.8),
+              800: Color.fromRGBO(149, 67, 255, 0.9),
+              900: Color.fromRGBO(149, 67, 255, 1.0),
+            },
+          ),
+          buttonColor: ColorApp.colorPurpler, // Ubah warna button
+          toggleableActiveColor: ColorApp.colorPurpler,
         ),
         debugShowCheckedModeBanner: false,
         initialRoute: Intro.routingName.toString(),
@@ -53,7 +62,8 @@ class MyApp extends StatelessWidget {
           PageDoa.routeName.toString(): (context) => PageDoa(),
           BacaSurat.routeName.toString(): (context) => BacaSurat(),
           JadwalSholat.routeName.toString(): (context) => JadwalSholat(),
-          PageTajwid.routeName.toString(): (context) => PageTajwid()
+          PageTajwid.routeName.toString(): (context) => PageTajwid(),
+          PageQuiz.routeName.toString(): (context) => PageQuiz()
         },
       ),
     );
