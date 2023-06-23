@@ -204,31 +204,25 @@ class _PageQuizState extends State<PageQuiz> with TickerProviderStateMixin {
     // TODO: implement build
     return Scaffold(
       body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        physics: PageScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.only(left: 0, right: 20),
           child: Column(
             children: [
               Stack(
                 children: [
-                  Positioned(
-                    left: -30,
-                    top: 0,
-                    child: FadeTransition(
-                        opacity: _FadeAnimationImageSuratS,
-                        child: SlideTransition(
-                          position: _PositionKategoris,
-                          child: Align(
-                              alignment: Alignment.topLeft,
-                              child: Positioned(
-                                child: SizedBox(
-                                    child: Image.asset(
-                                  "assets/ic_tajwid.png",
-                                  width: 340,
-                                  height: 260,
-                                  fit: BoxFit.fill,
-                                )),
-                              )),
-                        )),
+                  SlideTransition(
+                    position: _PositionKategoris,
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                            child: Image.asset(
+                          "assets/ic_tajwid.png",
+                          width: 340,
+                          height: 260,
+                          fit: BoxFit.fill,
+                        ))),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 10),
